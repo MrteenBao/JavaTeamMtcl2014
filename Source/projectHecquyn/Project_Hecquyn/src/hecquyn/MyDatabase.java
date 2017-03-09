@@ -3,7 +3,11 @@ this's class will control database with mongodb
  */
 package hecquyn;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.List;
 
@@ -11,34 +15,28 @@ import java.util.List;
  * @author Vuong Gia Phu
  */
 public class MyDatabase {
-    private static String host = "localhost";
-    private static int port = 27017;
+    private DB db;
     
-    //connect mongodb
-    private static MongoClient getMongoClient() throws UnknownHostException {
-        MongoClient mongoClient = new MongoClient(host, port);
-        return mongoClient;
-    }
-    
-    public static MongoClient connectMongoClient() throws UnknownHostException {
-        return getMongoClient();
-    }
-    
-    private static void ping() throws UnknownHostException {
-        MongoClient mongoClient = getMongoClient();
-        
-        System.out.println("List all DB");
-        
-        List<String> dbNames = mongoClient.getDatabaseNames();
-        for(String name : dbNames) {
-            System.out.println(name);
+    public MyDatabase() {
+        try {
+            MongoClient mongoClient = new MongoClient("localhost", 27017);
+            db = mongoClient.getDB("hecquyn");
+            System.out.println("Connect database successfully!");
+        } catch(Exception e) {
+            System.out.println(e.getClass().getName() + ": " + e.getMessage());
         }
-        
-        System.out.println("Success connection");
     }
     
-    //test
-    public static void main(String[] args) throws UnknownHostException {
-        ping();
+    public DB getDB() {
+        return db;
+    }
+    
+    //-------------------------
+    public void insert(String collection, String link, String text) {
+        DBCollection dept = db.getCollection(collection);
+        BasicDBObject doc = new BasicDBObject();
+        doc.append("link", link);
+        doc.append("text", text);
+        dept.insert(doc);
     }
 }
