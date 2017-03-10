@@ -21,4 +21,8 @@ public class Data {
     public String getLink() {
         return link;
     }
+    
+    public String getText() {
+        return text;
+    }
 }

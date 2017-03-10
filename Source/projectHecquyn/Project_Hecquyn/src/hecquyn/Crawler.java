@@ -21,7 +21,7 @@ public class Crawler {
         url = link;
     }
 
-    public ArrayList<Data> processPage() {
+    public ArrayList<Data> processPage1() {
         ArrayList<Data> list = new ArrayList<Data>();
         String link = "";
         String text = "";
@@ -47,12 +47,13 @@ public class Crawler {
         } catch (IOException e) {
             System.out.println("ERROR Crawler processPage");
         }
-
         return list;
     }
 
-    public void crawlPage() {
-
+    public ArrayList<Data> processPage2() {
+        ArrayList<Data> list = new ArrayList<Data>();
+        
+        return list;
     }
 
     public void testProcessPage() {
