@@ -16,12 +16,28 @@ public class Server {
     public static MyDatabase db = new MyDatabase();
     
     public static void main(String[] args) throws IOException {
-        String url_vnexpress = "http://vnexpress.net/";
-        Crawler crawler = new Crawler(url_vnexpress);
+        vnexpress();
+        zingnews();
+    }
+    
+    
+    public static void vnexpress() {
+        String url = "http://vnexpress.net/";
+        Crawler crawler = new Crawler(url);
         ArrayList<Data> list = new ArrayList<Data>();
-        list = crawler.processPage();
+        list = crawler.processPage_vnexpress();
         for(int i = 0; i < list.size(); i++) {
-            db.insert(url_vnexpress, list.get(i).getLink(), list.get(i).getText());
+            db.insert(url, list.get(i).getLink(), list.get(i).getText());
         }
-    } 
+    }
+    
+    public static void zingnews() throws IOException {
+        String url = "http://news.zing.vn/";
+        Crawler crawler = new Crawler(url);
+        ArrayList<Data> list = new ArrayList<Data>();
+        list = crawler.processPage_zingnews();
+        for(int i = 0; i < list.size(); i++) {
+            db.insert(url, list.get(i).getLink(), list.get(i).getText());
+        }
+    }
 }
