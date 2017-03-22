@@ -1,6 +1,3 @@
-/*
-this's class will control database with mongodb
- */
 package com.hecquyn.database;
 
 import com.mongodb.BasicDBObject;
@@ -11,9 +8,6 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.List;
 
-/**
- * @author Vuong Gia Phu
- */
 public class MyDatabase {
     private DB db;
     

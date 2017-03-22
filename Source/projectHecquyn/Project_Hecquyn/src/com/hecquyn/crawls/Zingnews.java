@@ -8,28 +8,27 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class Vnexpress extends Crawler {
-  
+public class Zingnews extends Crawler {
+    
     public ArrayList<Data> processPage() {
         ArrayList<Data> list = new ArrayList<Data>();
         String link = "";
-        String text = "";
         try {
-            Document doc = Jsoup.connect("http://vnexpress.net/").get();
-            Elements elements = doc.getElementsByTag("h3");
+            Document doc = Jsoup.connect("http://news.zing.vn/").get();
+            Elements elements = doc.getElementsByClass("title");
             for (Element e : elements) {
                 Elements a = e.children();
                 for (Element _a : a) {
-                    link = _a.attr("href").toString();
-                    if (!link.equals("")) {
+                    String temp = _a.attr("href").toString();
+                    if (!temp.equals("")) {
+                        link = "http://news.zing.vn/" + temp;
                         Document doc1 = Jsoup.connect(link).get();
-                        Elements elements1 = doc1.getElementsByTag("p");
+                        Elements elements1 = doc1.getElementsByClass("the-article-body cms-body");
                         for (Element e1 : elements1) {
-                            text = text + e1.attr("class", "Normal").toString() + "\n";
+                            String text = e1.toString();
+                            Data data = new Data(link, text);
+                            list.add(data);
                         }
-                        Data data = new Data(link, text);
-                        list.add(data);
-                        text = "";
                     }
                 }
             }

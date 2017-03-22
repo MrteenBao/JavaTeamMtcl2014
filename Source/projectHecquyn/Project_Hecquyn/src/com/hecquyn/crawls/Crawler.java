@@ -1,20 +1,11 @@
-package com.hecquyn.crawls;
+package com.hecquyn.crawl;
 
+import com.hecquyn.database.Data;
 import java.util.ArrayList;
 
-import javax.xml.crypto.Data;
 
-public class Crawler {
-
-    public String url;
-
-    public Crawler(String link) {
-        url = link;
-    }
+public abstract class Crawler {
     
-    public ArrayList<com.hecquyn.database.Data>  processPage(){
-		return null;};
-        
-        
+    public abstract ArrayList<Data> processPage();
 
 }
