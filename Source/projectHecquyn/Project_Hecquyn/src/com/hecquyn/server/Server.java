@@ -5,9 +5,11 @@
  */
 package com.hecquyn.server;
 
+import com.hecquyn.crawl.Bongda;
+import com.hecquyn.crawl.Vnexpress;
+import com.hecquyn.crawl.Zingnews;
 import com.hecquyn.database.Data;
 import com.hecquyn.database.MyDatabase;
-import com.hecquyn.crawl.Crawler;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -22,37 +24,34 @@ public class Server {
         vnexpress();
         zingnews();
         bongdavn();
-        /*ham hen gio -> tick timer*/
     }
     
     
-    public static void vnexpress() {
-        String url = "http://vnexpress.net/";
-        Crawler crawler = new Crawler(url);
+    public static void vnexpress() throws IOException {
         ArrayList<Data> list = new ArrayList<Data>();
-        list = crawler.processPage_vnexpress();
+        Vnexpress vnexpress = new Vnexpress();
+        list = vnexpress.processPage();
         for(int i = 0; i < list.size(); i++) {
-            db.insert(url, list.get(i).getLink(), list.get(i).getText());
+            db.insert("http://vnexpress.net/", list.get(i));
         }
     }
     
     public static void zingnews() throws IOException {
-        String url = "http://news.zing.vn/";
-        Crawler crawler = new Crawler(url);
         ArrayList<Data> list = new ArrayList<Data>();
-        list = crawler.processPage_zingnews();
+        Zingnews zingnews = new Zingnews();
+        list = zingnews.processPage();
         for(int i = 0; i < list.size(); i++) {
-            db.insert(url, list.get(i).getLink(), list.get(i).getText());
+            db.insert("http://news.zing.vn/", list.get(i));
         }
     }
     
     public static void bongdavn() throws IOException {
-        String url = "http://bongda.vn/";
-        Crawler crawler = new Crawler(url);
         ArrayList<Data> list = new ArrayList<Data>();
-        list = crawler.processPage_bongdavn();
+        Bongda bongda = new Bongda();
+        list = bongda.processPage();
         for(int i = 0; i < list.size(); i++) {
-            db.insert(url, list.get(i).getLink(), list.get(i).getText());
+            db.insert("http://bongda.vn/", list.get(i));
         }
     }
+    
 }
