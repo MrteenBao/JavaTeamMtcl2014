@@ -1,36 +1,86 @@
 package com.hecquyn.database;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.MongoClient;
-import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
-public class MyDatabase {
-    private DB db;
-    
-    public MyDatabase() {
-        try {
-            MongoClient mongoClient = new MongoClient("localhost", 27017);
-            db = mongoClient.getDB("hecquyn");
-            System.out.println("Connect database successfully!");
-        } catch(Exception e) {
-            System.out.println(e.getClass().getName() + ": " + e.getMessage());
-        }
-    }
-    
-    public DB getDB() {
-        return db;
-    }
-    
-    //-------------------------
-    public void insert(String collection, String link, String text) {
-        DBCollection dept = db.getCollection(collection);
-        BasicDBObject doc = new BasicDBObject();
-        doc.append("link", link);
-        doc.append("text", text);
-        dept.insert(doc);
-    }
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
+
+public class Database {
+	public MongoCollection<Document> Collection;
+	public static MongoDatabase db;
+
+	public Database(String Collection) throws UnknownHostException {
+		Logger mongoLogger = Logger.getLogger("org.mongodb.driver");
+		mongoLogger.setLevel(Level.SEVERE);
+		// Kết nối tới MongoDB.
+		MongoClient mongoClient = getMongoClient();
+		this.Collection = db.getCollection(Collection);
+		// Kết nối tới Database
+	}
+
+	// Kết nối authorized 
+	private static MongoClient getMongoClient() throws UnknownHostException {
+		MongoClientURI uri = new MongoClientURI(
+				"mongodb://Administrator:dangthienbao1412@ds161159.mlab.com:61159/javamtcl2014");
+		MongoClient mongoClient = new MongoClient(uri);
+		db = mongoClient.getDatabase(uri.getDatabase());
+		return mongoClient;
+	}
+
+	public List<Document> Search_Query(Document query, Document OrderBy) {
+		List<Document> documents = new ArrayList<>();
+		try {
+			MongoCursor<Document> cur = this.Collection.find(query).sort(OrderBy).iterator();
+			if (cur.hasNext()) {
+				while (cur.hasNext()) {
+					documents.add(cur.next());
+				}
+			} else {
+				System.out.println("No Result !!");
+			}
+			cur.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return documents;
+	}
+
+	public String FindOneString(Document query, String key) {
+		MongoCursor<Document> cursor = this.Collection.find(query).iterator();
+		if (cursor.hasNext()) {
+			return cursor.next().getString(key);
+		}
+		return null;
+	}
+
+	public int FindOneInt(Document query, String key) {
+		MongoCursor<Document> cursor = this.Collection.find(query).iterator();
+		if (cursor.hasNext()) {
+			return cursor.next().getInteger(key);
+		}
+		return 0;
+	}
+
+	public boolean CheckExist(Document query) {
+		MongoCursor<Document> cursor = this.Collection.find(query).iterator();
+		return cursor.hasNext();
+	}
+
+	public long CountRecords(Document query) {
+		return this.Collection.count(query);
+	}
+
+	public void RemoveRecord(Document query) {
+		this.Collection.deleteOne(query);
+	}
+
 }
