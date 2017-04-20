@@ -8,6 +8,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 
 import org.bson.Document;
 
@@ -52,8 +54,13 @@ public class ServerConnect {
 	private static void log(String message) {
 		System.out.println(message);
 	}
-	public String getNews(){
-		return "o";
+	public static ArrayList<Document> getNews_with_Hashtag(String Collection,String hashtag) throws UnknownHostException{
+		ArrayList<Document> result =new ArrayList<>();
+		//Data.Collection.drop();
+		Database data =new Database(Collection);
+		data.Collection.createIndex(new Document("_Hashtag","text"));
+		result = data.Hashtag_Search(hashtag, false, false);
+		return result;
 	}
 	private static class ServiceThread extends Thread {
 
@@ -72,24 +79,26 @@ public class ServerConnect {
 			BufferedReader is = null;
 			PrintWriter os = null;
 			boolean transing = true;
-			Document x = null;
+			Document x= new Document("Tittle","Connected data");
 			try {
 				is = new BufferedReader(new InputStreamReader(socketOfServer.getInputStream()));
 				os = new PrintWriter(socketOfServer.getOutputStream(), true);
 
 				while (transing) {
 					String line = is.readLine(); // Đọc dữ liệu đc gửi tới
-					Data = new Database("Collection");
-					
 					// Server
 					// GỌI HÀM XỬ LÝ CHUỖI LINE
+					
+					
 					// GỌI HÀM TRUY VẤN DATABASE
 					// TRẢ VỀ DOCUMENT CHO CLINET
-					os.println(x);
+					os.println(getNews_with_Hashtag("ZING",line));
 					os.flush();
-					os.println("OK");
-					os.flush();
-					break;
+					if(line.equals("EXIT")){
+						os.println("OK");
+						os.flush();
+						break;
+					}
 					/*
 					 * if(line.equals("QUIT")){ os.println("OK"); os.flush();
 					 * break; }
