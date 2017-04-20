@@ -22,10 +22,12 @@ public class Zingnews extends Crawler {
     public Zingnews(String link) {
         super(link);
     }
-    
+
+    @Override
     public ArrayList<Data> processPage() {
         ArrayList<Data> list = new ArrayList<Data>();
         String link = "";
+        ArrayList<String> tag = new ArrayList<String>();
         try {
             Document doc = Jsoup.connect("http://news.zing.vn/").get();
             Elements elements = doc.getElementsByClass("title");
@@ -39,8 +41,22 @@ public class Zingnews extends Crawler {
                         Elements elements1 = doc1.getElementsByClass("the-article-body cms-body");
                         for (Element e1 : elements1) {
                             String text = e1.toString();
-                            Data data = new Data(link, text);
-                            list.add(data);
+                            //Data data = new Data(link, text);
+                            //list.add(data);
+                        }
+                        
+                        Elements elements2 = doc1.getElementsByClass("the-article-tags");
+                        for (Element _elements2 : elements2) {
+                            /*if (_elements2.hasClass("block_tag width_common space_bottom_20")) {
+                                Elements e2 = _elements2.getElementsByTag("a");
+                                for (Element _e2 : e2) {
+                                    Element e3 = _e2.attr("class", "tag_item");
+                                    tag.add(e3.attr("title"));
+                                }
+                                Data data = new Data(link, text.get(temp), tag);
+                                list.add(data);
+                            }*/
+                            //System.out.println(_elements2.toString());
                         }
                     }
                 }

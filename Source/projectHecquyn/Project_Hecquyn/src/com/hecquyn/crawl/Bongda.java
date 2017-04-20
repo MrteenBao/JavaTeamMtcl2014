@@ -23,6 +23,7 @@ public class Bongda extends Crawler{
         super(link);
     }
     
+    @Override
     public ArrayList<Data> processPage() {
         ArrayList<Data> list = new ArrayList<Data>();
         String link = "";
@@ -39,8 +40,8 @@ public class Bongda extends Crawler{
                     for (Element e1 : elements1) {
                         text = text + e1.toString() + "\n";
                     }
-                    Data data = new Data(link, text);
-                    list.add(data);
+                    //Data data = new Data(link, text);
+                    //list.add(data);
                     text = "";
                 }
             }
