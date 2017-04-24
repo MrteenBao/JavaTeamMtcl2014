@@ -22,29 +22,26 @@ public class Vnexpress extends Crawler {
     public Vnexpress(String link) {
         super(link);
     }
-    
-    public void output(String link, String title, 
-            ArrayList<String> text, String date, String image, ArrayList<String> tag) {
-        
+
+    public void output(String link, String title,
+            String date, String image, ArrayList<String> tag) {
+
         System.out.println("---");
         System.out.println(link);
         System.out.println(title);
         System.out.println(date);
         System.out.println(image);
-        
+
         System.out.println(tag.size());
-        for(int i = 0; i < tag.size(); i++) {
+        for (int i = 0; i < tag.size(); i++) {
             System.out.println(tag.get(i));
         }
-        
-        //return null;
     }
 
     @Override
     public ArrayList<Data> processPage() {
         ArrayList<Data> list = new ArrayList<Data>();
         String txt = "";
-        int temp = 0;
 
         //Data
         String link = "";
@@ -69,7 +66,7 @@ public class Vnexpress extends Crawler {
                         }
                         text.add(txt);
                         txt = "";
-                        
+
                         Elements elements2 = doc1.getElementsByTag("div");
                         for (Element _elements2 : elements2) {
                             //get hashtag
@@ -87,13 +84,13 @@ public class Vnexpress extends Crawler {
                                     tag.remove(i);
                                 }*/
                             }
-                            
+
                             //get title
                             if (_elements2.hasClass("title_news")) {
                                 title = _elements2.text();
                                 //System.out.println(title);
                             }
-                            
+
                             //get date
                             if (_elements2.hasClass("block_timer_share")) {
                                 date = _elements2.text();
@@ -102,12 +99,15 @@ public class Vnexpress extends Crawler {
                             //get image
                             if (_elements2.hasClass("fck_detail width_common block_ads_connect")) {
                                 Elements e3 = _elements2.getElementsByTag("img");
-                                for(Element _e3 : e3) {
+                                for (Element _e3 : e3) {
                                     image = _e3.attr("src");
                                 }
                             }
                         }
-                        output(link, title, text, date, image, tag);
+
+                        Data data = new Data(link, title, date, image, tag);
+                        list.add(data);
+                        output(link, title, date, image, tag);
                         tag = new ArrayList<String>();
                     }
                 }
