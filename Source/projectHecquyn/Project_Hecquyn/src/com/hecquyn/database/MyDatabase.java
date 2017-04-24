@@ -1,19 +1,26 @@
-package DATABASE_HECQUIN;
+﻿package DATABASE_HECQUIN;
+
+
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bson.Document;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.Cursor;
 import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 
 public class Database {
 	public MongoCollection<Document> Collection;
@@ -26,6 +33,7 @@ public class Database {
 		MongoClient mongoClient = getMongoClient();
 		this.Collection = database.getCollection(Collection);
 		// Kết nối tới Database
+		database.getCollection(Collection).createIndex(new Document("_Image","text").append("_Title", "text").append("_Hashtag", "text"));
 	}
 
 	// Kết nối authorized 
@@ -83,48 +91,46 @@ public class Database {
 	public void RemoveRecord(Document query) {
 		this.Collection.deleteOne(query);
 	}
-	public  void Query_Search(String query, boolean caseSensitive, boolean diacriticSensitive) {
+
+	public List<String> getNews(){
+		List<String> list = new ArrayList<>();
+		try{
+			MongoCursor<Document> cur = null;
+			cur =  this.Collection.find().iterator();
+			if(cur.hasNext()){
+				while(cur.hasNext()){
+					list.add(cur.next().toJson());
+				}
+			}
+			else{
+				list.add("NULL");
+			}
+			cur.close();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return list;
+	}
+	public  List<String> Search(String query, boolean caseSensitive, boolean diacriticSensitive) {
+		List<String> list = new ArrayList<>();
 		try {
 			MongoCursor<Document> cursor = null;
+			//int i =0;
 			cursor = this.Collection
 					.find(new Document("$text",
 							new Document("$search", query).append("$caseSensitive", new Boolean(caseSensitive))
-									.append("$diacriticSensitive", new Boolean(diacriticSensitive)))).iterator();
-
-			while (cursor.hasNext()) {
-				Document article = cursor.next();
-				System.out.println(article);
+									.append("$diacriticSensitive", new Boolean(diacriticSensitive)))).sort(new Document("_Date",1)).iterator();
+			if(cursor.hasNext()){
+				while (cursor.hasNext()) {
+					list.add(cursor.next().toJson());
+				}
+			}else {
+				list.add("NULL");
 			}
-
 			cursor.close();
-
+			
 		} catch (Exception e) {
 			e.printStackTrace();
-		}finally{
-			//CLose 
-		}
-	}
-	public List<Document> Hashtag_Search(String hashtag){
-		List<Document> doc = new ArrayList<>();
-		try{
-			MongoCursor<Document> cursor = null;
-			BasicDBObject hashtagx;
-			hashtagx = new BasicDBObject();
-			hashtagx.put("Name_Hashtag", hashtag);
-			if(cursor.hasNext()){
-				while(cursor.hasNext()){
-					doc.add(cursor.next());
-		
-				}
-				cursor.close();
-			}
-			else{
-				System.out.println("No data");
-			}
-		}catch(Exception e ){
-			e.printStackTrace();
-		}
-		return doc;
-			
+		}return list;
 	}
 }                            

@@ -1,115 +1,270 @@
-package WebSocket;
-
+﻿
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.nio.channels.NotYetConnectedException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 import org.bson.Document;
+import org.java_websocket.WebSocket;
+import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.server.WebSocketServer;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoDatabase;
 
-import DATABASE_HECQUIN.Database;
 
-public class ServerConnect {
+public class ServerConnect extends WebSocketServer {
+	public ServerConnect(int port) {
+		super(new InetSocketAddress(port));
+	}
+
+	public ServerConnect(InetSocketAddress address) {
+		super(address);	
+	}
 	
-	private MongoClient mongoClient = null; 
-	private MongoDatabase db = null;
-	static Database Data;
-	public ServerConnect() throws IOException {
-		int _portNumber = 2345;
-		ServerSocket listener = null;
-		int clientNumber = 0;
-		boolean listening = true;
-		try {
-			listener = new ServerSocket(_portNumber); // mở cổng giao tiếp 8888
-														// ,note: Người dùng ko
-														// thể chọn cổng <1023
-		} catch (IOException e) {
-			System.out.println(e);
-			System.exit(1);
-		}
-		try {
-			while (listening) {
-				System.out.println("Server is waiting to accept client in Port: " + listener.getLocalPort());
-				// cấp phát 1 socket cho  mỗi client 
-				Socket socketOfServer = listener.accept();
-				listener.setSoTimeout(10000);
-				
-				new ServiceThread(socketOfServer, clientNumber++).start(); 
+	@Override
+	public void onOpen(WebSocket conn, ClientHandshake handshake) {
+		log("New connection from " + conn.getRemoteSocketAddress());
+	}
+	
+	@Override
+	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
+		log("Connection from " + conn.getRemoteSocketAddress() + " is closed");
+	}
+	
+	@Override
+	public void onMessage(WebSocket connect, String mess) {
+		log(mess + " from " + connect.getRemoteSocketAddress());
+		try{
+			JSONParser par = new JSONParser();
+			JSONObject json = (JSONObject) par.parse(mess);
+			 
+			// Page = { "ZING" , "VNEXPRESS" , "BONGDA" , "ALL"} 
+			String page = json.get("_Page").toString();  
+			// Filter = {"HASHTAG" , "IMAGE" , "TITLE"}
+			String filter = json.get("_Filter").toString();
+			String query = json.get("_Query").toString();
+			
+			//-------ZING NEWS-------
+			if(page.equals("ZING") | page.equals("VNEXPRESS") | page.equals("BONGDA")){
+					
+				//------HASHTAG Search-----
+				if(filter.equals("HASHTAG")){
+					try {
+						connect.send(getNews_with_Hashtag(page,query).toJson().toString());
+					} catch (NotYetConnectedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (UnknownHostException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}		
+				}
+					
+				//------IMAGE Search-----
+				if(filter.equals("IMAGE")){
+					try {
+						connect.send(getNews_with_Image(page,query).toJson().toString());
+					} catch (NotYetConnectedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (UnknownHostException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+					
+				//-----TITLE Search-----
+				if(filter.equals("TITLE")){
+					try {
+						connect.send(getNews_with_Title(page,query).toJson().toString());
+					} catch (NotYetConnectedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (UnknownHostException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 			}
-		} finally {
-			listener.close();
+			if(page.equals("ALL")){
+
+				String[] Page = {"ZING" , "VNEXPRESS" , "BONGDA"}; 
+				
+				//-------HASHTAG Search ALL-------
+				if(filter.equals("HASHTAG")){
+					for(int i = 0;i<Page.length;i++){
+						try {
+							connect.send(getNews_with_Hashtag(Page[i],query).toJson().toString());
+						} catch (NotYetConnectedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (UnknownHostException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+				
+				//--------IMAGE Search ALL-------
+				if(filter.equals("IMAGE")){
+					for(int i = 0;i<Page.length;i++){
+						try {
+							connect.send(getNews_with_Image(Page[i],query).toJson().toString());
+						} catch (NotYetConnectedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (UnknownHostException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+				
+				//---------TITLE Search ALL-------
+				if(filter.equals("TITLE")){
+					for(int i = 0;i<Page.length;i++){
+						try {
+							connect.send(getNews_with_Title(Page[i],query).toJson().toString());
+						} catch (NotYetConnectedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (UnknownHostException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+				
+				//-------ALL NEWS----------
+				if(filter.equals("ALL") && query.equals("ALL")){
+					for(int i=0;i<Page.length;i++){
+						try{
+							connect.send(getNews_All(Page[i]).toJson().toString());
+						} catch (NotYetConnectedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (UnknownHostException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}catch(Exception e ){
+			e.printStackTrace();
 		}
+	}
+			
 
+	@Override
+	public void onError(WebSocket conn, Exception ex) {
+		ex.printStackTrace();
+		log("error " + ex.getMessage());
 	}
 
-	private static void log(String message) {
-		System.out.println(message);
+	public static void main(String[] args) throws InterruptedException , IOException {
+		String _HOST = "localhost";
+		int _PORT = 9999;
+		boolean connecting = true;
+		//Get host 
+		if (args.length > 0) {
+			_HOST= args[0];
+			_PORT = Integer.parseInt(args[1]);
+		}
+		//start server 
+		WebSocketServer server = new ServerConnect(new InetSocketAddress(_HOST, _PORT));
+		server.start();
+		
+		log("Server is running on port " + server.getPort());
+		
+		BufferedReader sysin = new BufferedReader( new InputStreamReader( System.in ) );
+		while (connecting) {
+			String in = sysin.readLine();
+			if(in.equals("crawl")){
+				//Goi ham crawl
+			}
+			if(in.equals("exit"))
+			{
+				server.stop();
+				log("Server is stop");break;
+			}
+		}
 	}
-	public static ArrayList<Document> getNews_with_Hashtag(String Collection,String hashtag) throws UnknownHostException{
-		ArrayList<Document> result =new ArrayList<>();
+	public static Document getNews_with_Hashtag(String Collection,String hashtag) throws UnknownHostException{
+		
+		Document result = new Document();
+		
 		//Data.Collection.drop();
 		Database data =new Database(Collection);
-		data.Collection.createIndex(new Document("_Hashtag","text"));
-		result = data.Hashtag_Search(hashtag, false, false);
+		//data.Collection.createIndex(new Document("_Hashtag","text"));
+
+		if(data.Search(hashtag, false, false)==null){
+			return null;
+		}
+		else{
+			result.append("_Source", Collection)
+				  .append("_Result",data.Search(hashtag, false, false));
+			
+		}
 		return result;
 	}
-	private static class ServiceThread extends Thread {
-
-		private int clientNumber;
-		private Socket socketOfServer;
-
-		public ServiceThread(Socket socketOfServer, int clientNumber) {
-			this.clientNumber = clientNumber;
-			this.socketOfServer = socketOfServer;
-
-			// Log
-			log("Connect with Client  : " + this.clientNumber + " at " + socketOfServer);
-		}
+	public static Document getNews_with_Image(String Collection,String image) throws UnknownHostException{
 		
-		public void run() {
-			BufferedReader is = null;
-			PrintWriter os = null;
-			boolean transing = true;
-			Document x= new Document("Tittle","Connected data");
-			try {
-				is = new BufferedReader(new InputStreamReader(socketOfServer.getInputStream()));
-				os = new PrintWriter(socketOfServer.getOutputStream(), true);
-
-				while (transing) {
-					String line = is.readLine(); // Đọc dữ liệu đc gửi tới
-					// Server
-					// GỌI HÀM XỬ LÝ CHUỖI LINE
-					
-					
-					// GỌI HÀM TRUY VẤN DATABASE
-					// TRẢ VỀ DOCUMENT CHO CLINET
-					os.println(getNews_with_Hashtag("ZING",line));
-					os.flush();
-					if(line.equals("EXIT")){
-						os.println("OK");
-						os.flush();
-						break;
-					}
-					/*
-					 * if(line.equals("QUIT")){ os.println("OK"); os.flush();
-					 * break; }
-					 */
-				}
-			} catch (IOException e) {
-				System.out.println(e);
-				e.printStackTrace();
-			}
-		}
+		Document result = new Document();
 		
+		//Data.Collection.drop();
+		Database data =new Database(Collection);
+		//data.Collection.createIndex(new Document("_Image","text"));
+
+		if(data.Search(image, false, false)==null){
+			return null;
+		}
+		else{
+			result.append("_Source", Collection)
+				  .append("_Result",data.Search(image, false, false));
+			
+		}
+		return result;
+	}
+	public static Document getNews_with_Title(String Collection,String title) throws UnknownHostException{
+		
+		Document result = new Document();
+		
+		//Data.Collection.drop();
+		Database data =new Database(Collection);
+		//data.Collection.createIndex(new Document("_Title","text"));
+
+		if(data.Search(title, false, false)==null){
+			return null;
+		}
+		else{
+			result.append("_Source", Collection)
+				  .append("_Result",data.Search(title, false, false));
+		}
+		return result;
 	}
 	
+	public static Document getNews_All(String Collection) throws UnknownHostException {
+		Document result =new Document();
+		Database data = new Database(Collection);
+		//data.Collection.createIndex(new Document("_Hashtag","text"));
+		result.append("Source", Collection)
+			  .append("Result", data.getNews());
+		//result = data.getNews_All();
+		return result;
+	}
+	
+	private static void log(String message) {
+		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		Date date = new Date();
+		System.out.println(dateFormat.format(date) + ": " + message);
+   }
 }
