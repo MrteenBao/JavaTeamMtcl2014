@@ -1,4 +1,5 @@
 ﻿
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -58,7 +59,7 @@ public class ServerConnect extends WebSocketServer {
 				//------HASHTAG Search-----
 				if(filter.equals("HASHTAG")){
 					try {
-						connect.send(getNews_with_Hashtag(page,query).toJson().toString());
+						connect.send(getNews_with_Hashtag(page,query).toJson());
 					} catch (NotYetConnectedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -71,7 +72,7 @@ public class ServerConnect extends WebSocketServer {
 				//------IMAGE Search-----
 				if(filter.equals("IMAGE")){
 					try {
-						connect.send(getNews_with_Image(page,query).toJson().toString());
+						connect.send(getNews_with_Image(page,query).toJson());
 					} catch (NotYetConnectedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -84,7 +85,7 @@ public class ServerConnect extends WebSocketServer {
 				//-----TITLE Search-----
 				if(filter.equals("TITLE")){
 					try {
-						connect.send(getNews_with_Title(page,query).toJson().toString());
+						connect.send(getNews_with_Title(page,query).toJson());
 					} catch (NotYetConnectedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -102,7 +103,7 @@ public class ServerConnect extends WebSocketServer {
 				if(filter.equals("HASHTAG")){
 					for(int i = 0;i<Page.length;i++){
 						try {
-							connect.send(getNews_with_Hashtag(Page[i],query).toJson().toString());
+							connect.send(getNews_with_Hashtag(Page[i],query).toJson());
 						} catch (NotYetConnectedException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -117,7 +118,7 @@ public class ServerConnect extends WebSocketServer {
 				if(filter.equals("IMAGE")){
 					for(int i = 0;i<Page.length;i++){
 						try {
-							connect.send(getNews_with_Image(Page[i],query).toJson().toString());
+							connect.send(getNews_with_Image(Page[i],query).toJson());
 						} catch (NotYetConnectedException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -132,7 +133,7 @@ public class ServerConnect extends WebSocketServer {
 				if(filter.equals("TITLE")){
 					for(int i = 0;i<Page.length;i++){
 						try {
-							connect.send(getNews_with_Title(Page[i],query).toJson().toString());
+							connect.send(getNews_with_Title(Page[i],query).toJson());
 						} catch (NotYetConnectedException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -147,7 +148,7 @@ public class ServerConnect extends WebSocketServer {
 				if(filter.equals("ALL") && query.equals("ALL")){
 					for(int i=0;i<Page.length;i++){
 						try{
-							connect.send(getNews_All(Page[i]).toJson().toString());
+							connect.send(getNews_All(Page[i]).toJson());
 						} catch (NotYetConnectedException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -198,67 +199,80 @@ public class ServerConnect extends WebSocketServer {
 			}
 		}
 	}
+	//-----------HASHTAG SEARCH---------
 	public static Document getNews_with_Hashtag(String Collection,String hashtag) throws UnknownHostException{
 		
 		Document result = new Document();
 		
 		//Data.Collection.drop();
 		Database data =new Database(Collection);
-		//data.Collection.createIndex(new Document("_Hashtag","text"));
-
+		data.Collection.createIndex(new Document("_Hashtag","text"));
+		
 		if(data.Search(hashtag, false, false)==null){
-			return null;
+			return result.append("_Source",Collection)
+						 .append("_Result", null);
 		}
 		else{
 			result.append("_Source", Collection)
 				  .append("_Result",data.Search(hashtag, false, false));
 			
 		}
+		data.Collection.dropIndex(new Document("_Hashtag","text"));
 		return result;
 	}
+	
+	//-----------IMAGE SERACH--------------
 	public static Document getNews_with_Image(String Collection,String image) throws UnknownHostException{
 		
 		Document result = new Document();
 		
 		//Data.Collection.drop();
 		Database data =new Database(Collection);
-		//data.Collection.createIndex(new Document("_Image","text"));
+		data.Collection.createIndex(new Document("_Image","text"));
 
 		if(data.Search(image, false, false)==null){
-			return null;
+			return result.append("_Source",Collection)
+					 .append("_Result", null);
 		}
 		else{
 			result.append("_Source", Collection)
-				  .append("_Result",data.Search(image, false, false));
+				  .append("_Result",data.Search(image,false,false));
 			
 		}
+		data.Collection.dropIndex(new Document("_Image","text"));
 		return result;
 	}
+	
+	//---------------TITLE SEARCH---------------
 	public static Document getNews_with_Title(String Collection,String title) throws UnknownHostException{
 		
 		Document result = new Document();
 		
 		//Data.Collection.drop();
 		Database data =new Database(Collection);
-		//data.Collection.createIndex(new Document("_Title","text"));
+		data.Collection.createIndex(new Document("_Title","text"));
 
 		if(data.Search(title, false, false)==null){
-			return null;
+			return result.append("_Source",Collection)
+					 .append("_Result", null);
 		}
 		else{
 			result.append("_Source", Collection)
 				  .append("_Result",data.Search(title, false, false));
 		}
+		data.Collection.dropIndex(new Document("_Title","text"));
 		return result;
 	}
 	
+	//--------------ALL NEWS-------------------
 	public static Document getNews_All(String Collection) throws UnknownHostException {
 		Document result =new Document();
 		Database data = new Database(Collection);
-		//data.Collection.createIndex(new Document("_Hashtag","text"));
+		data.Collection.createIndex(new Document("_Hashtag","text"));
 		result.append("Source", Collection)
 			  .append("Result", data.getNews());
 		//result = data.getNews_All();
+		data.Collection.dropIndex(new Document("_Hashtag","text"));
 		return result;
 	}
 	
@@ -268,3 +282,4 @@ public class ServerConnect extends WebSocketServer {
 		System.out.println(dateFormat.format(date) + ": " + message);
    }
 }
+
