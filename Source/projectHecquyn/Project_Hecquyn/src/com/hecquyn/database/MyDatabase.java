@@ -2,6 +2,8 @@
 
 
 
+
+
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bson.Document;
 
+import com.mongodb.*;
 import com.mongodb.BasicDBObject;
 import com.mongodb.Cursor;
 import com.mongodb.DBCursor;
@@ -33,7 +36,7 @@ public class Database {
 		MongoClient mongoClient = getMongoClient();
 		this.Collection = database.getCollection(Collection);
 		// Kết nối tới Database
-		database.getCollection(Collection).createIndex(new Document("_Image","text").append("_Title", "text").append("_Hashtag", "text"));
+		//database.getCollection(Collection).createIndex(new Document("_Image","text").append("_Title", "text").append("_Hashtag", "text"));
 	}
 
 	// Kết nối authorized 
@@ -111,8 +114,22 @@ public class Database {
 		}
 		return list;
 	}
-	public  List<String> Search(String query, boolean caseSensitive, boolean diacriticSensitive) {
+	public List<String> Search_Image(String query){
 		List<String> list = new ArrayList<>();
+		try{
+			MongoCursor<Document> cur = null;
+			cur = this.Collection.find(new Document("_Image",query)).iterator();
+			if(cur.hasNext()){
+				while(cur.hasNext()){
+					list.add(cur.next().toJson());
+				}
+			}
+		}catch(Exception e ){
+			e.printStackTrace();
+		}return list;
+	}
+	public  List<Document> Search(String query, boolean caseSensitive, boolean diacriticSensitive) {
+		List<Document> list = new ArrayList<>();
 		try {
 			MongoCursor<Document> cursor = null;
 			//int i =0;
@@ -122,10 +139,10 @@ public class Database {
 									.append("$diacriticSensitive", new Boolean(diacriticSensitive)))).sort(new Document("_Date",1)).iterator();
 			if(cursor.hasNext()){
 				while (cursor.hasNext()) {
-					list.add(cursor.next().toJson());
+					list.add(cursor.next());
 				}
 			}else {
-				list.add("NULL");
+				return null;
 			}
 			cursor.close();
 			
@@ -133,4 +150,4 @@ public class Database {
 			e.printStackTrace();
 		}return list;
 	}
-}                            
+}                                              
