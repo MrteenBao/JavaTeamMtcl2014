@@ -1,11 +1,13 @@
-﻿
-import java.io.IOException;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 
 import org.bson.Document;
@@ -13,11 +15,14 @@ import org.bson.Document;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.drafts.Draft_10;
-import org.java_websocket.drafts.Draft_17;
+
 import org.java_websocket.handshake.ServerHandshake;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 	
-public class ClientConnectB extends WebSocketClient {
+public abstract class ClientConnectB extends WebSocketClient {
 	
 	//private static final String URI = "ws://localhost:9999";
 	private String message;
@@ -34,15 +39,36 @@ public class ClientConnectB extends WebSocketClient {
 		log( "Opened connection");
 		// if you plan to refuse connection based on ip or httpfields overload: onWebsocketHandshakeReceivedAsClient
 	}
-
+	
+	public abstract void get_News_Android(String source, List<String> result);
+	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void onMessage( String message ) {
-		System.out.println( "Result of search:  "  + message );
+		
+		JSONParser par =new JSONParser();
+		JSONObject json = null;
+		String source;
+		List<String> result;
+		try {
+			json = (JSONObject) par.parse(message);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		source = (String) json.get("_Source");
+		result =  ((List<String>) json.get("_Result"));
+		this.get_News_Android(source, result);
+//		System.out.println("**: "+message);
+//		System.out.println("@@: "+json.get("_Result"));
+//		System.out.println("##: "+source);
+	
+		
 	}
 
 	@Override
 	public void onClose( int code, String reason, boolean remote ) {
-		// The codecodes are documented in class org.java_websocket.framing.CloseFrame
 		System.out.println( "Connection closed by " + ( remote ? "remote peer" : "us" ) );
 	}
 
@@ -64,45 +90,52 @@ public class ClientConnectB extends WebSocketClient {
 	public static void log(String message) {
 		System.out.println(getCurrentDateTime() + ": " + message);
 	}
-	public  static String   SendtoServer(String Page,String Filter,String Query )throws URISyntaxException, IOException {
-		//	String uri = "ws://104.198.199.19:9999";
-			String uri = "ws://localhost:9999";
+	
+
+	public String   SendtoServer(String Page,String Filter,String Query )throws URISyntaxException, IOException {
+			//String uri = "ws://104.198.199.19:6969";
+			//String uri = "ws://localhost:9999";
 			Document CMD = new Document();
 			CMD.append("_Page", Page)
 				.append("_Filter", Filter)
 				.append("_Query", Query);
 		
-			ClientConnectB client = new ClientConnectB(new URI(uri), new Draft_10());
-			client.connect();
+			//ClientConnectB client = new ClientConnectB(new URI(uri), new Draft_10());
+			//client.connect();
 			//BufferedReader sysin = new BufferedReader( new InputStreamReader( System.in ) );
 			while (true) {
-			//	String in = sysin.readLine();
-				if (CMD==null) {
-					client.close();
+				//String in = sysin.readLine();
+				if (Query.equals("exit")) {
+					close();
 					System.out.println("Closed connection");
 					break;
 				}
 				else {
 					try {
-						 client.send(CMD.toJson());
+						 send(CMD.toJson());
 						 break;
 					} catch (Exception e) {
-						
+						e.printStackTrace();
 					}
 				}
 			}    
 			//sleep To receive data from Client
 		while (true)
 		{	     try {
-			Thread.sleep(1);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}finally{
+			
 		}
-				if(client.getMessage()!=null){
-				//System.out.println(client.getMessage());
-				return client.getMessage();
-				}
+			if(getMessage()!=null){
+			//System.out.println(client.getMessage());
+				
+			return getMessage();
+			}
 				
 		}
 	}
