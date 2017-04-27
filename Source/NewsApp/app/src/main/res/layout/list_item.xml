@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:padding="4dp"
+    android:background="#fff"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:paddingLeft="5dp"
+        android:layout_width="270dp"
+        android:paddingRight="7dp"
+        android:paddingBottom="5dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:textSize="12sp"
+                android:id="@+id/news_item_time"
+                android:layout_width="wrap_content"
+                android:text="10 minutes ago"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+        <TextView
+            android:textColor="#000"
+            android:textSize="15sp"
+            android:text="Công Vinh lên tiếng trước tin đồn 'săn' Berbatov, Kiatisak chỉ trích liên đoàn bóng đá Thái Lan"
+            android:id="@+id/news_item_des"
+            android:layout_width="match_parent"
+            android:layout_height="79dp" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/news_item_img"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="#CCC" />
+</LinearLayout>

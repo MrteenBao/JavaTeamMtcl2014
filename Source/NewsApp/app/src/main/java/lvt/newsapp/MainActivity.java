@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.phuvg.myui1;
+package lvt.newsapp;
 
 import android.app.SearchManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -39,9 +40,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.phuvg.ClientConnectB;
-import com.phuvg.Object.News;
-import com.phuvg.adapter.NewsAdapter;
 
 import org.java_websocket.drafts.Draft_10;
 
@@ -50,6 +48,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+
+import lvt.newsapp.R;
 
 /**
  * TODO
@@ -141,20 +141,28 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     @Override
     protected void onResume() {
-        super.onResume();
         String uri = "ws://ec2-54-169-80-188.ap-southeast-1.compute.amazonaws.com:6969";
         try {
             client = new ClientConnectB(new URI(uri), new Draft_10()) {
                 @Override
                 public void get_News_Android(String source, List<String> result) {
-                    for(String item : result){
-                        Log.d("NEWS", item);
+                    Log.d("TEST", "CALL BACK");
+                    if (result == null) {
+                        Log.d("TEST", "NULL");
+                    } else {
+                        for (String item : result) {
+                            Log.d("TEST", item);
+                        }
                     }
                 }
             };
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+        client.connect();
+
+        super.onResume();
+
     }
 
     @Override
@@ -203,15 +211,32 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
 
     @Override
-    public boolean onQueryTextSubmit(String query) {
+    public boolean onQueryTextSubmit(final String query) {
+
         try {
-            client.SendtoServer("ZING", "TITLE", query);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        GetTask task = new GetTask();
+        task.execute(query);
         return false;
+    }
+
+    public class GetTask extends AsyncTask<String, String, String>{
+
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                client.SendtoServer("ALL", "HASHTAG", params[0]);
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return "";
+        }
     }
 
     @Override
