@@ -27,4 +27,17 @@
     <string name="menu_settings">Settings</string>
     <string name="hint_search">Search ...</string>
 
+        <string-array name="spinnerItems">
+            <item>ALL</item>
+            <item>ZING</item>
+            <item>BONGDA</item>
+            <item>VNEXPRESS</item>
+        </string-array>
+
+    <string-array name="spinnerItems1">
+        <item>ALL</item>
+        <item>HASHTAG</item>
+        <item>TITLE</item>
+        <item>IMAGE</item>
+    </string-array>
 </resources>

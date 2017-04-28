@@ -39,9 +39,15 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Spinner;
 
 
 import org.java_websocket.drafts.Draft_10;
+import org.json.JSONException;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -64,7 +70,15 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     private LinearLayoutManager mLayoutManager;
     private RecyclerView.OnScrollListener mListener;
     ClientConnectB client;
-
+    ArrayList<News> zing;
+    ArrayList<News> bongda;
+    NewsAdapter adapter;
+    List<String> allItem;
+    Spinner page;
+    Spinner filter;
+    String selectedPage;
+    String selectedFilter;
+    int callback_count;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,20 +93,16 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         rvNews = (RecyclerView) findViewById(R.id.rvNews);
         fabNext = (FloatingActionButton) findViewById(R.id.fabNext);
-
+        page = (Spinner) findViewById(R.id.pinnerPage);
+        filter = (Spinner) findViewById(R.id.pinnerFilter);
         fabPre = (FloatingActionButton) findViewById(R.id.fabPre);
         fabNext.setVisibility(View.INVISIBLE);
         fabPre.setVisibility(View.INVISIBLE);
         fabNext.setOnClickListener(this);
         fabPre.setOnClickListener(this);
         newsList = new ArrayList<>();
-        for (int i = 0; i < 30; i++) {
-            newsList.add(new News("Ahihi" + i));
-        }
-
-        NewsAdapter adapter = new NewsAdapter(newsList, this);
+        adapter = new NewsAdapter(newsList, this);
         rvNews.setAdapter(adapter);
-
         mLayoutManager = new LinearLayoutManager(this);
         rvNews.setLayoutManager(mLayoutManager);
         rvNews.setHasFixedSize(true);
@@ -100,6 +110,8 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         if (navigationView != null) {
             setupDrawerContent(navigationView);
         }
+        zing = new ArrayList<>();
+        bongda = new ArrayList<>();
         inti();
         rvNews.addOnScrollListener(mListener);
 
@@ -146,13 +158,39 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             client = new ClientConnectB(new URI(uri), new Draft_10()) {
                 @Override
                 public void get_News_Android(String source, List<String> result) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
                     Log.d("TEST", "CALL BACK");
                     if (result == null) {
                         Log.d("TEST", "NULL");
                     } else {
-                        for (String item : result) {
-                            Log.d("TEST", item);
+                        Log.d("TEST", "!nulll");
+
+                        JSONParser parser = new JSONParser();
+                        JSONArray array = null;
+                        try {
+                            array = (JSONArray) parser.parse(result.toString());
+                            Log.d("TEST", String.valueOf(array.size()));
+                        } catch (ParseException e) {
+                            e.printStackTrace();
                         }
+
+                        for (int i = 0; i < array.size(); i++) {
+                            JSONObject object = (JSONObject) array.get(i);
+                            String title = (String) object.get("_Title");
+                            String link = (String) object.get("_Link");
+                            String date = (String) object.get("_Date");
+                            JSONArray imageArr = (JSONArray) object.get("_Image");
+                            String image = (String) imageArr.get(0);
+                            Log.d("TEST", title + " " + link + " " + image);
+                            News news = new News(link, title, image, date);
+                            newsList.add(news);
+                        }
+                        adapter.notifyDataSetChanged();
                     }
                 }
             };
@@ -160,7 +198,6 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             e.printStackTrace();
         }
         client.connect();
-
         super.onResume();
 
     }
@@ -213,30 +250,36 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     @Override
     public boolean onQueryTextSubmit(final String query) {
 
+        newsList.clear();
+        adapter.notifyDataSetChanged();
+        selectedPage = page.getSelectedItem().toString();
+        selectedFilter = filter.getSelectedItem().toString();
+
         try {
-            Thread.sleep(1000);
+            Thread.sleep(300);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        GetTask task = new GetTask();
-        task.execute(query);
-        return false;
-    }
-
-    public class GetTask extends AsyncTask<String, String, String>{
-
-        @Override
-        protected String doInBackground(String... params) {
-            try {
-                client.SendtoServer("ALL", "HASHTAG", params[0]);
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    client.SendtoServer(selectedPage, selectedFilter, query);
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-            return "";
+        });
+        thread.start();
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        return false;
     }
 
     @Override

@@ -19,6 +19,13 @@ public class News {
         this.date = date;
     }
 
+    public News(String url, String title, String imageUrl, String date) {
+        this.url = url;
+        this.title = title;
+        this.imageUrl = imageUrl;
+        this.date = date;
+    }
+
     public News(String title) {
         this.title = title;
     }
